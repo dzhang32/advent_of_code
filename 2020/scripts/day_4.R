@@ -75,15 +75,6 @@ passports_tidy <- passports_tidy %>%
            into = sort(needed),
            sep = " ")
 
-
-tidy_info <- function(x){
-  
-  x %>% 
-    str_replace(".*", "") %>% 
-    as.
-  
-}
-
 # now filter by the criteria 
 passports_valid <- passports_tidy %>% 
   mutate_if(.predicate = is.character, 
