@@ -2,7 +2,7 @@ library(tidyverse)
 
 # Load data ---------------------------------------------------------------
 
-raw_entries <- read_delim("raw_data/day_1.txt", delim = "\t", col_names = "entry")
+raw_entries <- read_delim(here::here("raw_data", "day_1.txt"), delim = "\t", col_names = "entry")
 
 # Main --------------------------------------------------------------------
 
