@@ -37,5 +37,60 @@ x_coords <- seq(from = 1, by = 3, length.out = nrow(grid_tidy))
 # if x > ncols it returns to the %% of 31
 x_coords <- ifelse(x_coords > 31, x_coords %% 31, x_coords)
 
+# also need to replace 0's with 31
+x_coords <- ifelse(x_coords == 0, 31, x_coords)
+
+trees <- 0
+
+for(i in seq_along(y_coords)){
+  
+  trees <- trees + grid_tidy[[y_coords[i], x_coords[i]]]
+  
+}
+
+##### Part 2 #####
+
+count_trees <- function(grid, step_right, step_down){
+  
+  grid_ncol <- ncol(grid)
+  grid_nrow <- nrow(grid)
+  
+  y_coords <- seq(1, grid_nrow, step_down)
+  x_coords <- seq(from = 1, 
+                  by = step_right, 
+                  length.out = length(y_coords))
+  
+  x_coords <- ifelse(x_coords > grid_ncol, x_coords %% grid_ncol, x_coords)
+  x_coords <- ifelse(x_coords == 0, grid_ncol, x_coords)
+  
+  trees <- 0
+  
+  for(i in seq_along(y_coords)){
+    
+    trees <- trees + grid[[y_coords[i], x_coords[i]]]
+    
+  }
+  
+  return(trees)
+  
+}
+
+trajects <- tibble(right = c(1, 3, 5, 7, 1), 
+                   down = c(1, 1, 1, 1, 2))
+
+trees <- vector("numeric", nrow(trajects))
+
+for(i in seq_len(nrow(trajects))){
+  
+  trees[i] <- count_trees(grid_tidy, 
+                          trajects[["right"]][i], 
+                          trajects[["down"]][i])
+  
+}
+
+prod(trees)
+
+
+
 
            
