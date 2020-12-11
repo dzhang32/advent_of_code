@@ -76,60 +76,105 @@ sum(upstream[["upstream"]])
 
 ##### Part 2 #####
 
-get_num_bags <- function(scores, node, path, ...){
+# convert nomenclature of bags into parent and child for 
+# easier recognition 
+rules_tidy <- rules_tidy %>% 
+  dplyr::select(parent = bag, 
+                child = contents_type, 
+                num_child = contents_num) %>% 
+  mutate(child = ifelse(child == " other", parent, child)) 
+
+# for each node, the number of bags that node adds is equal 
+# to the product of the weights of upstream paths
+# let's manually cycle through each downstream bag and calc that number
+# surely possible via graph theory, but can't figure it out
+get_num_downstream <- function(root, rules){
   
-  if(nrow(path) == 0){
+  bag_curr_level <- rules_tidy %>% 
+    filter(parent == root) %>% 
+    mutate(path = num_child %>% as.list())
+  
+  num_total <- 0
+  
+  while(sum(bag_curr_level[["num_child"]]) != 0){
     
-    return(NA_integer_)
+    # get total number of bags at this level 
+    # and add it to the total
+    # when the num_childs is 0 (no downstream bags)
+    # prod will = 0, so will appropriately not add 
+    num_bags_curr_level <- bag_curr_level[["path"]] %>% 
+      lapply(prod) %>% 
+      unlist() %>% 
+      sum()
+    
+    num_total <- num_total + num_bags_curr_level
+    
+    # find the rules for bags down one level
+    bag_next_level <- rules %>% 
+      filter(parent %in% bag_curr_level[["child"]])
+    
+    bag_curr_level <- update_bag_level(bag_curr_level, 
+                                       bag_next_level)
     
   }
   
-  curr_node <- tibble(node = node,
-                      parent = path[["node"]][nrow(path)])
-  
-  path <- path %>% 
-    bind_rows(curr_node) %>% 
-    filter(!is.na(parent)) %>% 
-    left_join(.E(), 
-              by = c("parent" = "from", 
-                     "node" = "to"))
-  
-  num_bags <- prod(path[["weight"]]) %>% 
-    as.integer()
-  
-  return(num_bags)
+  return(num_total)
   
 }
 
-check <- bag_graph %>%
-  mutate(num_bags = map_dfs_int(root = shiny_gold[["id"]], 
-                                .f = get_num_bags, 
-                                scores = scores, 
-                                mode = "out")) %>% 
-  as_tibble() %>% 
-  filter(!is.na(num_bags))
+update_bag_level <- function(bag_curr_level, bag_next_level){
+  
+  bag_curr_level <- bag_curr_level %>% 
+    left_join(bag_next_level, 
+              by = c("child" = "parent"), 
+              suffix = c("_curr", "_next")) 
+  
+  # child of last level becomes parent
+  # and next level child becomes new child
+  bag_curr_level <- bag_curr_level %>% 
+    dplyr::select(parent = child, 
+                  child = child_next, 
+                  num_child = num_child_next, 
+                  path)
+  
+  # update paths with the edge weight
+  # edge weight being the num of child bags
+  for(i in seq_len(nrow(bag_curr_level))){
+    
+    bag_curr_level[["path"]][[i]] <- 
+      c(bag_curr_level[["path"]][[i]], 
+        bag_curr_level[["num_child"]][i])
+    
+  }
+  
+  return(bag_curr_level)
+  
+}
 
-sum(check[["num_bags"]])
+get_num_downstream(root = "shiny gold", 
+                   rules = rules_tidy)
 
-
-# filter down to simple example to allow
-# visualisation for debugging and testing purposes
-# bag_graph <- bag_graph %>%
-#   activate(edges) %>%
-#   filter(bag == "shiny gold" | contents_type == "shiny gold" | contents_type == "drab silver")
+# # filter down to simple example to allow
+# # visualisation for debugging and testing
+# bag_to_vis <- "dull aqua"
 # 
-# edges <- bag_graph %>%
-#   activate(edges) %>%
-#   as_tibble()
+# # get id of bag to visualise the downstream of
+# bag_to_vis <- nodes %>% 
+#   filter(bag == bag_to_vis)
 # 
+# downstream <- bag_graph %>% 
+#   mutate(downstream = bfs_before(root = bag_to_vis[["id"]], mode = "out")) %>% 
+#   as_tibble() %>% 
+#   filter(!is.na(downstream)) 
+# 
+# # keep only downstream nodes of and the bag itself
 # bag_graph <- bag_graph %>%
 #   activate(nodes) %>%
-#   filter(bag %in% c(edges[["bag"]], edges[["contents_type"]])) %>%
-#   mutate(id = row_number())
+#   filter(bag %in% c(downstream[["bag"]], bag_to_vis[["bag"]]))
 # 
 # ggraph(bag_graph, layout = 'kk') +
 #   geom_node_point() +
-#   geom_edge_link2(aes(width = weight),
+#   geom_edge_link2(aes(label = weight),
 #                   alpha = 0.5,
 #                   arrow = grid::arrow(length = unit(0.5, "cm"))) +
 #   geom_node_text(aes(label = bag)) +
