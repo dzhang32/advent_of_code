@@ -79,7 +79,7 @@ addresses %>%
   gmp::as.bigz() %>% 
   sum()
 
-##### Part 1 ####
+##### Part 2 ####
 
 # first, let's convert the convert the memory addresses 
 # using the new masking rule
