@@ -38,7 +38,7 @@ waiting_times[min_waiting_time] * times_tidy[min_waiting_time]
 ##### Part 2 #####
 
 # after much googling, it looks like this problem is solved via the 
-# chinese remainder theorum
+# chinese remainder theorem
 # https://www.dave4math.com/mathematics/chinese-remainder-theorem/
 times_tidy <- times_raw %>% 
   .[[2, "time"]] %>% 
@@ -50,7 +50,7 @@ times_tidy <- times_raw %>%
 # then t is a multiple of 7 (t %% 7 = 0)
 # and t + 1 must be a multiple of 13 (t + 1 && 13 = 0)
 # the latter also means t && 13 = 13 - 1 = 12
-# let's calculate the rems
+# let's calculate the remainders
 times_tidy <- 
   tibble(mod = times_tidy) %>% 
   mutate(id = row_number() - 1, 
@@ -72,8 +72,7 @@ get_mod_1_factor <- function(x, mod){
       
     }
     
-    # need to set this as "big" integers 
-    # incase they get too for R
+    # need to set this as "big" integers for accuracy as large numbers
     factor_curr <- 1
     x_big_start <- gmp::as.bigz(x[i])
     x_big_curr <- x_big_start
