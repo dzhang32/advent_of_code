@@ -87,7 +87,7 @@ bench_results <- bench::press(
 )
 
 # C++ much faster 
-bench_results %>% 
+r_vs_cpp_speed <- bench_results %>% 
   mutate(expression = expression %>% 
            as.character()) %>% 
   ggplot(aes(x = n, 
@@ -100,7 +100,7 @@ bench_results %>%
 # but more surprisingly R starts to require e.g. ~2Gb of memory for 
 # obtaining the 10,000th number
 # whilst Cpp only needs 2.49Kb
-bench_results %>% 
+r_vs_cpp_mem <- bench_results %>% 
   mutate(expression = expression %>% 
            as.character()) %>% 
   ggplot(aes(x = n, 
@@ -110,6 +110,10 @@ bench_results %>%
   geom_point() + 
   scale_x_log10() +
   scale_y_log10()
+
+r_vs_cpp <- r_vs_cpp_speed + r_vs_cpp_mem
+
+ggsave("r_vs_cpp.png", plot = r_vs_cpp, path = "~/Downloads/", width = 10, height = 5, dpi = 600)
 
 # let's only test Cpp with higher values of N 
 bench_results <- bench::press(
