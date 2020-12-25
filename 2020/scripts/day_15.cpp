@@ -1,36 +1,16 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-int get_next_num_cpp(std::map<int, int> his, int num_prev, int i_curr) {
-  
-  // map.find() will return an iterator to the entry if key present
-  // if not, will be the end of map
-  std::map<int, int>::iterator it; 
-  it = his.find(num_prev);
-  
-  // if not found, return 0 
-  if(it == his.end()) {
-    
-    return 0; 
-    
-  }
-  
-  // if found minus the index of num_prev position 
-  // from the 
-  int i_prev = it->second; 
-    
-  return i_curr - 1 - i_prev;
-  
-}
-
 // [[Rcpp::export]]
 int get_n_value_cpp(int n, std::vector<int> start_seq) {
   
+  // declare outside loop to avoid cost of declaration per iteration
+  // this actually creates a huge overhead cost for many iterations 
+
   // declare a map to store the values that have appeared
   // key = number, value = index
   std::map<int, int> his; 
-  
-  // declare outside loop to avoid cost of declaration per iteration
+  std::map<int, int>::iterator it; 
   int num_curr;
   int num_prev;
   
@@ -43,14 +23,29 @@ int get_n_value_cpp(int n, std::vector<int> start_seq) {
          
     }else { 
       
-      // otherwise calculate and store the next money
-      num_curr = get_next_num_cpp(his, num_prev, i);
+      // map.find() will return an iterator to the entry if key present
+      // if not, will be the end of map
+      it = his.find(num_prev);
+      
+      if(it == his.end()) {
+        
+        // if not found, return 0 
+        num_curr = 0; 
+        
+      }else { 
+        
+        // otherwise minus the the stored index 
+        // from the current index
+        num_curr = i - 1 - it->second;
+        
+      }
       
     }
     
     if(i != 0){
       
-      
+      // need to store the previous number on the iteration after
+      // as get_next_num_cpp calculation relies on previous index
       his[num_prev] = i - 1;
       
     }
@@ -64,5 +59,5 @@ int get_n_value_cpp(int n, std::vector<int> start_seq) {
 }
 
 /*** R
-get_n_value_cpp(6, 1:3)
+get_n_value_cpp(5, 1:3)
 */

@@ -69,12 +69,14 @@ get_n_value(n = 2020, number_his = start_num_raw)
 # so can't be sped up via vectorisation/parallesation 
 # 2. change the implementation - storing only the last index for which each 
 # number has appeared instead of the entire sequence
-
-# let's try rewriting the code in Rcpp 
+# let's try implementing both
 sourceCpp(here::here("2020", "scripts", "day_15.cpp"))
 
-# as a test, let's compare how fast the c++ implementation is 
-# to the R version across various values of N
+get_n_value(n = 2020, start_num_raw)
+get_n_value_cpp(2020, start_num_raw)
+
+# as a test, let's compare how fast the map-based c++ implementation
+# compared to the R version across various values of N
 bench_results <- bench::press(
   n = c(10, 100, 1000, 10000),
   {
@@ -86,7 +88,10 @@ bench_results <- bench::press(
   }
 )
 
-# C++ much faster 
+# much faster and memory efficient
+# but more surprisingly R starts to require e.g. ~2Gb of memory for 
+# obtaining the 10,000th number
+# whilst Cpp only needs 2.49Kb
 r_vs_cpp_speed <- bench_results %>% 
   mutate(expression = expression %>% 
            as.character()) %>% 
@@ -94,41 +99,40 @@ r_vs_cpp_speed <- bench_results %>%
              y = median, 
              colour = expression)) + 
   geom_line() + 
-  geom_point() + 
-  scale_x_log10() 
+  geom_point(shape = 4) + 
+  scale_x_log10("N iterations") + 
+  scale_y_continuous("Median runtime (s)") + 
+  theme_bw()
 
-# but more surprisingly R starts to require e.g. ~2Gb of memory for 
-# obtaining the 10,000th number
-# whilst Cpp only needs 2.49Kb
 r_vs_cpp_mem <- bench_results %>% 
   mutate(expression = expression %>% 
-           as.character()) %>% 
+           as.character(), 
+         mem_alloc = mem_alloc %>% 
+           as.double(),
+         mem_alloc = mem_alloc/1000000) %>% 
   ggplot(aes(x = n, 
              y = mem_alloc, 
              colour = expression)) + 
   geom_line() + 
-  geom_point() + 
-  scale_x_log10() +
-  scale_y_log10()
+  geom_point(shape = 4) + 
+  scale_x_log10("N iterations") +
+  scale_y_continuous("Memory allocation (Mb)") + 
+  theme_bw()
 
 r_vs_cpp <- r_vs_cpp_speed + r_vs_cpp_mem
 
-ggsave("r_vs_cpp.png", plot = r_vs_cpp, path = "~/Downloads/", width = 10, height = 5, dpi = 600)
-
 # let's only test Cpp with higher values of N 
 bench_results <- bench::press(
-  n = c(10, 100, 1000, 10000, 100000),
+  n = c(10, 100, 1000, 10000, 100000, 1000000, 10000000),
   {
     bench::mark(
-      max_iterations = 1, 
+      max_iterations = 5, 
       Cpp = get_n_value_cpp(n, start_num_raw)
     )
   }
 )
 
-# issue is still that the Cpp implementation speed exponentially increases
-# 100,000th takes ~6s whilst 10,000s ~71ms
-# and therefore is still way too slow for 30000000
+# now 10,000,000 iterations takes <5s
 bench_results %>% 
   mutate(expression = expression %>% 
            as.character()) %>% 
@@ -136,7 +140,9 @@ bench_results %>%
              y = median, 
              colour = expression)) + 
   geom_line() + 
-  geom_point() + 
-  scale_x_log10() 
+  geom_point(shape = 4) + 
+  scale_x_log10("N iterations") + 
+  scale_y_continuous("Median runtime (s)") + 
+  theme_bw()
 
-
+get_n_value_cpp(30000000, start_num_raw)
