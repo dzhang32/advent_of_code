@@ -1,73 +1,68 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// This is a simple example of exporting a C++ function to R. You can
-// source this function into an R session using the Rcpp::sourceCpp 
-// function (or via the Source button on the editor toolbar). Learn
-// more about Rcpp at:
-//
-//   http://www.rcpp.org/
-//   http://adv-r.had.co.nz/Rcpp.html
-//   http://gallery.rcpp.org/
-//
+int get_next_num_cpp(std::map<int, int> his, int num_prev, int i_curr) {
+  
+  // map.find() will return an iterator to the entry if key present
+  // if not, will be the end of map
+  std::map<int, int>::iterator it; 
+  it = his.find(num_prev);
+  
+  // if not found, return 0 
+  if(it == his.end()) {
+    
+    return 0; 
+    
+  }
+  
+  // if found minus the index of num_prev position 
+  // from the 
+  int i_prev = it->second; 
+    
+  return i_curr - 1 - i_prev;
+  
+}
 
 // [[Rcpp::export]]
-int get_next_num_cpp(std::vector<int> seq, int i) {
+int get_n_value_cpp(int n, std::vector<int> start_seq) {
   
-  // store index of matches where his[i] has appeared previously
-  std::vector<int> match;
+  // declare a map to store the values that have appeared
+  // key = number, value = index
+  std::map<int, int> his; 
   
-  for(int j = 0; j < i; ++j) {
+  // declare outside loop to avoid cost of declaration per iteration
+  int num_curr;
+  int num_prev;
+  
+  for(int i = 0; i < n; ++i) {
     
-    if(seq[i] == seq[j]) {
+    // store the starting numbers in the map
+    if(i < start_seq.size()) {
+         
+      num_curr = start_seq[i]; 
+         
+    }else { 
       
-      match.push_back(j);
+      // otherwise calculate and store the next money
+      num_curr = get_next_num_cpp(his, num_prev, i);
       
     }
     
+    if(i != 0){
+      
+      
+      his[num_prev] = i - 1;
+      
+    }
+    
+    num_prev = num_curr;
+    
   }
-  
-  // if no matches, next element is 0
-  if(match.size() == 0) return 0;
-  
-  // calculate diff between the current position 
-  // and the index of the latest appearence
-  int diff = i - match[match.size() - 1];
-  
-  return diff;
+
+  return num_curr; 
   
 }
-
-// [[Rcpp::export]]
-int get_n_value_cpp(int n, std::vector<int> his){
-  
-  // declare a vector of length that we want to obtain
-  std::vector<int> seq(n, 0);
-  
-  // add the values from his into seq
-  for(int i = 0; i < his.size(); ++i) {
-    
-    seq[i] = his[i];
-    
-  }
-  
-  // starting from the unknown elements (after his)
-  // calculate each next number
-  for(int i = his.size(); i < seq.size(); ++i) {
-    
-    seq[i] = get_next_num_cpp(seq, i - 1);
-    
-  }
-  
-  return seq[n - 1];
-  
-}
-
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically 
-// run after the compilation.
-//
 
 /*** R
-get_n_value_cpp(2020, c(1, 3, 2))
+get_n_value_cpp(6, 1:3)
 */
