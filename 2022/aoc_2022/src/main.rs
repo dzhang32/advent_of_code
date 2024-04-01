@@ -1,5 +1,6 @@
 mod common;
 mod day_01;
+mod day_02;
 
 use std::env;
 use std::path::Path;
@@ -26,6 +27,7 @@ fn main() -> () {
 
     match day.as_str() {
         "day_01" => day_01::solve(input_file_path, part),
+        "day_02" => day_02::solve(input_file_path, part),
         other => panic!("No such day as {}", other),
     }
 }
