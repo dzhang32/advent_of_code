@@ -7,6 +7,7 @@ mod day_05;
 mod day_06;
 mod day_07;
 mod day_08;
+mod day_09;
 
 use std::env;
 use std::path::Path;
@@ -40,6 +41,7 @@ fn main() -> () {
         "day_06" => day_06::solve(input_file_path, part),
         "day_07" => day_07::solve(input_file_path, part),
         "day_08" => day_08::solve(input_file_path, part),
+        "day_09" => day_09::solve(input_file_path, part),
         other => panic!("No such day as {}", other),
     }
 }
