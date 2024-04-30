@@ -7,6 +7,7 @@ mod day_02;
 mod day_03;
 mod day_04;
 mod day_05;
+mod day_06;
 
 pub enum Part {
     One,
@@ -67,6 +68,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         3 => day_03::solve(config),
         4 => day_04::solve(config),
         5 => day_05::solve(config),
+        6 => day_06::solve(config),
         other => return Err(format!("Solution for day {} not found.", other).into()),
     };
 
