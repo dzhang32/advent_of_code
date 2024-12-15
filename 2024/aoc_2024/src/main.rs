@@ -1,8 +1,8 @@
 mod day_1;
+mod utils;
 
 use clap::Parser;
 use std::process;
-use std::error::Error;
 
 /// Parse input arguments.
 #[derive(Parser)]
@@ -31,8 +31,7 @@ fn main() {
 
 fn run(cli: Cli) -> Result<(), String> {
     match cli.day {
-        1 => day_1::solve(cli.part), 
-        _ => return Err(format!("Day {} not implemented.", cli.day)),
+        1 => day_1::solve(cli.day, cli.part),
+        _ => Err(format!("Day {} not implemented.", cli.day)),
     }
-    Ok(())
-}   
+}
