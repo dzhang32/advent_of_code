@@ -1,5 +1,5 @@
 use crate::utils::data_path;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 use std::{fs::File, io::{BufRead, BufReader}, path::Path};
 use std::cmp::Reverse;
 
@@ -34,7 +34,6 @@ fn solve_part_1(input_file_path: &Path) -> i32 {
     let n = min_heap_1.len();
 
     for _ in 0..n {
-
         let dist = min_heap_1.pop().unwrap().0 - min_heap_2.pop().unwrap().0;
 
         total_dist += dist.abs()
@@ -47,7 +46,33 @@ fn solve_part_1(input_file_path: &Path) -> i32 {
 }
 
 fn solve_part_2(input_file_path: &Path) -> i32 {
-    0
+    let file = File::open(input_file_path).unwrap();
+    let reader = BufReader::new(file);
+
+    let mut nums = Vec::new();  
+    let mut seen = HashMap::new();
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let line = line.split_whitespace().collect::<Vec<&str>>();
+
+        let int_1 = line[0].parse::<i32>().unwrap();
+        let int_2 = line[1].parse::<i32>().unwrap();
+
+        nums.push(int_1);
+        let n = seen.entry(int_2).or_insert(0);
+        *n += 1;
+    }
+
+    let mut total: i32 = 0;
+
+    for n in nums {
+        if seen.contains_key(&n) {
+            total += n * seen.get(&n).unwrap();
+        }
+    }
+
+    total
 }
 
 #[cfg(test)]
@@ -58,5 +83,11 @@ mod tests {
     fn test_solve_part_1() {
         let input_file_path = data_path(1, 1);
         assert_eq!(solve_part_1(&input_file_path), 1110981)
+    }
+
+    #[test]
+    fn test_solve_part_2() {
+        let input_file_path = data_path(1, 1);
+        assert_eq!(solve_part_2(&input_file_path), 24869388)
     }
 }
